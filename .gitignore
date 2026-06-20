@@ -1,0 +1,8 @@
+# Artefatos de compilacao
+obj/
+idp_sim
+*.o
+
+# Editores
+*.swp
+.vscode/
