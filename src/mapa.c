@@ -1,66 +1,84 @@
 #include "mapa.h"
+#include <stdlib.h>
+#include <string.h>
 
 int mapa_init(Mapa *m, int largura, int altura)
 {
-    /* TODO: alocar as celulas (largura*altura), marcar todas como livres e
-     * sem ocupante, inicializar o mutex. Retornar 0 em sucesso. */
-    (void)m;
-    (void)largura;
-    (void)altura;
+    m->largura = largura;
+    m->altura  = altura;
+    m->celulas = calloc((size_t)(largura * altura), sizeof(Celula));
+    if (!m->celulas) return -1;
+
+    for (int i = 0; i < largura * altura; i++) {
+        m->celulas[i].tipo     = CELULA_LIVRE;
+        m->celulas[i].ocupante = SEM_OCUPANTE;
+    }
+
+    if (pthread_mutex_init(&m->mutex, NULL) != 0) {
+        free(m->celulas);
+        m->celulas = NULL;
+        return -1;
+    }
     return 0;
 }
 
 void mapa_destroy(Mapa *m)
 {
-    /* TODO: liberar as celulas e destruir o mutex. */
-    (void)m;
+    free(m->celulas);
+    m->celulas = NULL;
+    pthread_mutex_destroy(&m->mutex);
 }
 
 int mapa_valido(const Mapa *m, int x, int y)
 {
-    /* TODO: 1 se (x, y) esta dentro dos limites do mapa. */
-    (void)m;
-    (void)x;
-    (void)y;
-    return 0;
+    return x >= 0 && x < m->largura && y >= 0 && y < m->altura;
 }
 
 Celula *mapa_celula(Mapa *m, int x, int y)
 {
-    /* TODO: retornar ponteiro para a celula (x, y) ou NULL se invalida. */
-    (void)m;
-    (void)x;
-    (void)y;
-    return NULL;
+    if (!mapa_valido(m, x, y)) return NULL;
+    return &m->celulas[y * m->largura + x];
 }
+
+/* --- secoes criticas --- */
 
 int mapa_tenta_ocupar(Mapa *m, int x, int y, int id)
 {
-    /* TODO (secao critica): sob o mutex, ocupar (x, y) com 'id' se estiver
-     * livre e nao for parede. Retornar 1 em sucesso, 0 caso contrario. */
-    (void)m;
-    (void)x;
-    (void)y;
-    (void)id;
-    return 0;
+    if (!mapa_valido(m, x, y)) return 0;
+
+    pthread_mutex_lock(&m->mutex);
+    Celula *c = &m->celulas[y * m->largura + x];
+    int ok = 0;
+    if (c->tipo != CELULA_PAREDE && c->ocupante == SEM_OCUPANTE) {
+        c->ocupante = id;
+        ok = 1;
+    }
+    pthread_mutex_unlock(&m->mutex);
+    return ok;
 }
 
 void mapa_liberar(Mapa *m, int x, int y)
 {
-    /* TODO (secao critica): sob o mutex, marcar (x, y) como sem ocupante. */
-    (void)m;
-    (void)x;
-    (void)y;
+    if (!mapa_valido(m, x, y)) return;
+
+    pthread_mutex_lock(&m->mutex);
+    m->celulas[y * m->largura + x].ocupante = SEM_OCUPANTE;
+    pthread_mutex_unlock(&m->mutex);
 }
 
 int mapa_tenta_mover(Mapa *m, Vec2 de, Vec2 para, int id)
 {
-    /* TODO (secao critica): sob o mutex, se 'para' estiver livre e nao for
-     * parede, liberar 'de' e ocupar 'para'. Garantir que nenhuma celula
-     * fique com dois ocupantes. Retornar 1 se moveu, 0 caso contrario. */
-    (void)m;
-    (void)de;
-    (void)para;
-    (void)id;
-    return 0;
+    if (!mapa_valido(m, para.x, para.y)) return 0;
+
+    pthread_mutex_lock(&m->mutex);
+    Celula *dest = &m->celulas[para.y * m->largura + para.x];
+    int ok = 0;
+    if (dest->tipo != CELULA_PAREDE && dest->ocupante == SEM_OCUPANTE) {
+        if (mapa_valido(m, de.x, de.y))
+            m->celulas[de.y * m->largura + de.x].ocupante = SEM_OCUPANTE;
+        dest->ocupante = id;
+        ok = 1;
+    }
+    pthread_mutex_unlock(&m->mutex);
+    return ok;
 }
