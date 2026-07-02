@@ -20,13 +20,16 @@ OBJS := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 # Objetos sem main.o (usado pelo binario de teste)
 OBJS_NO_MAIN := $(filter-out $(OBJ_DIR)/main.o,$(OBJS))
 
-TESTE_SRC := tests/teste_fundacao.c
-TESTE_BIN := tests/teste_fundacao
+TESTE_SRC     := tests/teste_fundacao.c
+TESTE_BIN     := tests/teste_fundacao
+
+TESTE_BFS_SRC := tests/teste_bfs.c
+TESTE_BFS_BIN := tests/teste_bfs
 
 # Cenario padrao para 'make run'
 N ?= 1
 
-.PHONY: all run clean teste
+.PHONY: all run clean teste teste-bfs
 
 all: $(BIN)
 
@@ -48,8 +51,14 @@ teste: $(TESTE_BIN)
 $(TESTE_BIN): $(TESTE_SRC) $(OBJS_NO_MAIN) | tests
 	$(CC) $(CFLAGS) $(TESTE_SRC) $(OBJS_NO_MAIN) -o $@ $(LDFLAGS)
 
+teste-bfs: $(TESTE_BFS_BIN)
+	./$(TESTE_BFS_BIN)
+
+$(TESTE_BFS_BIN): $(TESTE_BFS_SRC) $(OBJS_NO_MAIN) | tests
+	$(CC) $(CFLAGS) $(TESTE_BFS_SRC) $(OBJS_NO_MAIN) -o $@ $(LDFLAGS)
+
 tests:
 	mkdir -p tests
 
 clean:
-	rm -rf $(OBJ_DIR) $(BIN) $(TESTE_BIN)
+	rm -rf $(OBJ_DIR) $(BIN) $(TESTE_BIN) $(TESTE_BFS_BIN)
