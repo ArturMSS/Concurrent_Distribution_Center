@@ -23,13 +23,16 @@ OBJS_NO_MAIN := $(filter-out $(OBJ_DIR)/main.o,$(OBJS))
 TESTE_SRC     := tests/teste_fundacao.c
 TESTE_BIN     := tests/teste_fundacao
 
-TESTE_BFS_SRC := tests/teste_bfs.c
-TESTE_BFS_BIN := tests/teste_bfs
+TESTE_BFS_SRC    := tests/teste_bfs.c
+TESTE_BFS_BIN    := tests/teste_bfs
+
+TESTE_STRESS_SRC := tests/teste_stress.c
+TESTE_STRESS_BIN := tests/teste_stress
 
 # Cenario padrao para 'make run'
 N ?= 1
 
-.PHONY: all run clean teste teste-bfs
+.PHONY: all run clean teste teste-bfs teste-stress
 
 all: $(BIN)
 
@@ -57,8 +60,14 @@ teste-bfs: $(TESTE_BFS_BIN)
 $(TESTE_BFS_BIN): $(TESTE_BFS_SRC) $(OBJS_NO_MAIN) | tests
 	$(CC) $(CFLAGS) $(TESTE_BFS_SRC) $(OBJS_NO_MAIN) -o $@ $(LDFLAGS)
 
+teste-stress: $(TESTE_STRESS_BIN)
+	./$(TESTE_STRESS_BIN)
+
+$(TESTE_STRESS_BIN): $(TESTE_STRESS_SRC) $(OBJS_NO_MAIN) | tests
+	$(CC) $(CFLAGS) $(TESTE_STRESS_SRC) $(OBJS_NO_MAIN) -o $@ $(LDFLAGS)
+
 tests:
 	mkdir -p tests
 
 clean:
-	rm -rf $(OBJ_DIR) $(BIN) $(TESTE_BIN) $(TESTE_BFS_BIN)
+	rm -rf $(OBJ_DIR) $(BIN) $(TESTE_BIN) $(TESTE_BFS_BIN) $(TESTE_STRESS_BIN)

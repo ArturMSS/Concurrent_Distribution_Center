@@ -12,10 +12,18 @@
 
 int main(int argc, char **argv)
 {
-    /* 1. Cenario: argv[1] ou 1 como padrao */
+    /* 1. Cenario: argv[1] seleciona o cenario (1-3) ou 0 para config dinamica */
     int n = (argc >= 2) ? atoi(argv[1]) : 1;
-    if (n < 1 || n > NUM_CENARIOS) n = 1;
-    Config cfg = config_carregar_cenario(n);
+    Config cfg;
+    if (n == 0) {
+        if (config_carregar_dinamico(&cfg) != 0) {
+            fprintf(stderr, "Erro: configuracao invalida.\n");
+            return 1;
+        }
+    } else {
+        if (n < 1 || n > NUM_CENARIOS) n = 1;
+        cfg = config_carregar_cenario(n);
+    }
 
     /* 2. Inicializar estado global */
     Simulacao sim;

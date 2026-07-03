@@ -61,9 +61,59 @@ Config config_carregar_cenario(int n)
     return c;
 }
 
+/* Le um inteiro da stdin. Se o usuario pressionar Enter sem digitar nada,
+ * usa 'padrao'. Retorna o valor lido ou o padrao. */
+static int ler_int(const char *prompt, int padrao, int minimo, int maximo)
+{
+    char buf[64];
+    int v;
+    for (;;) {
+        printf("%s [%d]: ", prompt, padrao);
+        fflush(stdout);
+        if (!fgets(buf, sizeof(buf), stdin)) return padrao;
+        if (buf[0] == '\n') return padrao;
+        if (sscanf(buf, "%d", &v) == 1 && v >= minimo && v <= maximo)
+            return v;
+        printf("  Valor invalido. Informe um inteiro entre %d e %d.\n",
+               minimo, maximo);
+    }
+}
+
 int config_carregar_dinamico(Config *cfg)
 {
-    /* TODO (opcional): ler parametros do usuario em tempo de execucao. */
-    (void)cfg;
+    memset(cfg, 0, sizeof(*cfg));
+
+    printf("\n=== Configuracao dinamica ===\n");
+    printf("Pressione Enter para usar o valor entre colchetes.\n\n");
+
+    snprintf(cfg->nome, sizeof(cfg->nome), "Personalizado");
+
+    cfg->largura          = ler_int("Largura do mapa (colunas)", 18,  8, 64);
+    cfg->altura           = ler_int("Altura do mapa (linhas)",   12,  6, 40);
+    cfg->num_coletores    = ler_int("Robos coletores",            2,  1, 10);
+    cfg->num_entregadores = ler_int("Robos entregadores",         1,  1, 10);
+    cfg->num_estacoes     = ler_int("Estacoes de coleta (P)",     3,  1, 10);
+    cfg->num_despachos    = ler_int("Pontos de despacho (D)",     2,  1, 10);
+    cfg->num_obstaculos   = ler_int("Obstaculos (#)",             4,  0, 40);
+    cfg->tamanho_esteira  = ler_int("Tamanho da esteira",         6,  2, 30);
+    cfg->total_pacotes    = ler_int("Total de pacotes (meta)",   20,  1, 500);
+    cfg->intervalo_geracao_ms =
+                            ler_int("Intervalo de geracao (ms)", 1200, 50, 10000);
+    cfg->passo_ms         = ler_int("Duracao de um tick (ms)",   300, 50,  2000);
+    cfg->seed             = (unsigned int)ler_int("Semente aleatoria", 42, 0, 99999);
+
+    /* Sanidade minima: ao menos uma celula livre por robo e por estrutura */
+    int total_celulas = cfg->largura * cfg->altura;
+    int ocupados = cfg->num_coletores + cfg->num_entregadores
+                 + cfg->num_estacoes  + cfg->num_despachos
+                 + cfg->num_obstaculos + 2; /* +2: entrada e saida da esteira */
+    if (ocupados >= total_celulas) {
+        fprintf(stderr,
+            "Erro: mapa muito pequeno para acomodar todos os elementos "
+            "(%d celulas, %d necessarias).\n", total_celulas, ocupados + 1);
+        return -1;
+    }
+
+    printf("\nCenario \"%s\" configurado com sucesso.\n\n", cfg->nome);
     return 0;
 }
