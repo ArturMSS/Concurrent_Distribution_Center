@@ -32,7 +32,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    /* 3. Interface ncurses (deve ser inicializada antes das threads) */
+    /* 3. Interface Raylib (configuracao inicial antes das threads) */
     interface_init();
 
     /* 4. ArgRobo individuais — devem existir durante toda a vida das threads */

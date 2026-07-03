@@ -21,7 +21,7 @@
  *   - 1 thread Esteira                    (esteira.c -> thread_esteira)
  *   - N threads Robo Coletor              (robo_coletor.c)
  *   - M threads Robo Entregador           (robo_entregador.c)
- *   - 1 thread Interface (ncurses)        (interface.c)
+ *   - 1 thread Interface (Raylib)          (interface.c)
  */
 
 /* Estatisticas/contadores globais exibidos pela interface. */

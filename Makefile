@@ -8,7 +8,7 @@
 
 CC      := gcc
 CFLAGS  := -Wall -Wextra -std=gnu11 -Iinclude -pthread -g
-LDFLAGS := -pthread -lncurses
+LDFLAGS := -pthread -lraylib -lm
 
 SRC_DIR  := src
 OBJ_DIR  := obj

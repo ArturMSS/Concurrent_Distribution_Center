@@ -5,6 +5,8 @@ Simulação concorrente, em C, de um centro de distribuição de pacotes da
 de coleta, transportados por robôs até a esteira, percorrem a esteira e são
 retirados por robôs entregadores que os levam aos pontos de despacho.
 
+A interface gráfica é construída com **Raylib** (bônus de nota extra).
+
 ---
 
 ## Casos disponíveis
@@ -20,62 +22,49 @@ Pressione **`q`** a qualquer momento para encerrar a simulação antes de atingi
 
 ---
 
-## Início rápido (container Ubuntu 24.04 — recomendado)
+## Rodar diretamente no Ubuntu 24.04 (recomendado)
 
-A forma mais simples de rodar em qualquer máquina é usando um container
-Ubuntu 24.04 via **podman** (rootless, sem daemon).
-
-### Pré-requisito: configurar podman rootless
-
-Necessário apenas uma vez por usuário:
+### Pré-requisitos
 
 ```bash
-# 1. Verificar se já existem faixas de UIDs/GIDs (provavelmente vazio)
-grep $USER /etc/subuid /etc/subgid
-
-# 2. Adicionar as faixas subordinadas
-sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $USER
-
-# 3. Fazer o podman reconhecer a mudança
-podman system migrate
-
-# 4. Verificar que funciona
-podman pull ubuntu:24.04
+sudo apt update
+sudo apt install build-essential libraylib-dev libx11-dev libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev
 ```
 
-### 1. Construir a imagem
-
-Na raiz do repositório:
+### Compilar
 
 ```bash
-podman build -t idp_sim .
+make
 ```
 
-### 2. Rodar os cenários
-
-A interface usa ncurses (terminal interativo), por isso é preciso passar `-it`:
+### Executar
 
 ```bash
 # Caso 1 — Simples (padrão)
-podman run --rm -it idp_sim 1
+./idp_sim 1
 
 # Caso 2 — Intermediário
-podman run --rm -it idp_sim 2
+./idp_sim 2
 
 # Caso 3 — Alta concorrência
-podman run --rm -it idp_sim 3
+./idp_sim 3
+
+# Caso 0 — Configuração dinâmica (pede parâmetros no terminal antes de abrir a janela)
+./idp_sim 0
+```
+
+Via `make`:
+
+```bash
+make run          # compila e roda o caso 1
+make run N=2      # caso 2
+make run N=3      # caso 3
+make run N=0      # caso 0 (configuração dinâmica)
 ```
 
 #### Caso 0 — Configuração dinâmica
 
-O caso 0 lê os parâmetros do usuário via stdin **antes** de abrir o ncurses,
-por isso é preciso usar `-it`:
-
-```bash
-podman run --rm -it idp_sim 0
-```
-
-Você verá um prompt interativo no terminal:
+Antes de abrir a janela gráfica, o programa pede os parâmetros no terminal:
 
 ```
 === Configuracao dinamica ===
@@ -95,67 +84,7 @@ Duracao de um tick (ms)   [300]:
 Semente aleatoria         [42]:
 ```
 
-Pressione **Enter** em cada campo para aceitar o valor padrão, ou digite
-o novo valor antes de pressionar Enter.
-
-### 3. Rodar os testes dentro do container
-
-```bash
-# abre um shell com o código do host montado em /trabalho
-podman run --rm -it -v "$(pwd)":/trabalho:Z idp_sim bash
-
-# dentro do container:
-make clean        # garante recompilação com o código montado
-make
-make teste        # valida fundação (mapa, simulação, operações atômicas)
-make teste-bfs    # prova que o BFS desvia de obstáculo em U
-```
-
-> **Nota:** a flag `:Z` no volume é necessária em sistemas com SELinux
-> (Fedora, RHEL, etc.) para o container ter permissão de leitura/escrita.
-
----
-
-## Rodar diretamente no Ubuntu 24.04
-
-### Pré-requisitos
-
-```bash
-sudo apt update
-sudo apt install build-essential libncurses-dev
-```
-
-### Compilar
-
-```bash
-make
-```
-
-### Executar — todos os casos
-
-```bash
-# Caso 1 — Simples (padrão quando nenhum argumento é passado)
-./idp_sim
-./idp_sim 1
-
-# Caso 2 — Intermediário
-./idp_sim 2
-
-# Caso 3 — Alta concorrência
-./idp_sim 3
-
-# Caso 0 — Configuração dinâmica (pede parâmetros no terminal)
-./idp_sim 0
-```
-
-Via `make`:
-
-```bash
-make run          # compila e roda o caso 1
-make run N=2      # compila e roda o caso 2
-make run N=3      # compila e roda o caso 3
-make run N=0      # compila e roda o caso 0 (configuração dinâmica)
-```
+Pressione **Enter** em cada campo para aceitar o valor padrão, ou digite o novo valor.
 
 ### Testes
 
@@ -173,6 +102,63 @@ make clean
 
 ---
 
+## Rodar via container (compilação e testes)
+
+> A interface Raylib abre uma janela gráfica, por isso o container precisa de
+> acesso ao servidor X11 do host para **executar**. Para apenas **compilar e
+> testar**, nenhum display é necessário.
+
+### Pré-requisito: podman rootless (uma vez só)
+
+```bash
+grep $USER /etc/subuid /etc/subgid  # deve mostrar faixas; se vazio, rode:
+sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $USER
+podman system migrate
+podman pull ubuntu:24.04
+```
+
+### 1. Construir a imagem
+
+```bash
+podman build -t idp_sim .
+```
+
+### 2. Executar com janela gráfica (Linux com X11)
+
+```bash
+xhost +local:                      # permite o container usar o display local
+
+# Caso 1
+podman run --rm -it \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+  idp_sim 1
+
+# Caso 2
+podman run --rm -it \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+  idp_sim 2
+```
+
+> **SELinux (Fedora/RHEL):** adicione `:z` ao volume X11:
+> `-v /tmp/.X11-unix:/tmp/.X11-unix:ro,z`
+
+### 3. Rodar apenas os testes (sem display)
+
+```bash
+# Abre um shell com o código do host montado em /trabalho
+podman run --rm -it -v "$(pwd)":/trabalho:Z idp_sim bash
+
+# Dentro do container:
+make clean
+make
+make teste
+make teste-bfs
+```
+
+---
+
 ## Parâmetros dos cenários estáticos
 
 | # | Nome | Mapa | Coletores | Entregadores | Estações | Despachos | Obstáculos | Esteira | Meta |
@@ -183,18 +169,21 @@ make clean
 
 ---
 
-## Legenda da interface
+## Legenda da interface gráfica
 
 | Símbolo | Cor | Significado |
 |---------|-----|-------------|
 | `P` | amarelo | estação de coleta |
 | `I` | magenta | entrada da esteira |
 | `O` | magenta | saída da esteira |
-| `D` | amarelo | ponto de despacho |
+| `D` | laranja | ponto de despacho |
 | `C` | verde | robô coletor |
 | `E` | ciano | robô entregador |
-| `#` | branco | parede / obstáculo |
-| `.` | — | célula livre |
+| `#` | cinza claro | parede / obstáculo |
+| `.` | escuro | célula livre |
+
+O painel lateral exibe: ocupação da esteira, pacotes aguardando/gerados/entregues,
+barra de progresso e cronômetro de execução.
 
 ---
 
@@ -221,7 +210,7 @@ Dockerfile
 | `gerador.{h,c}` | thread do gerador de pacotes |
 | `robo_coletor.{h,c}` | thread dos robôs coletores |
 | `robo_entregador.{h,c}` | thread dos robôs entregadores |
-| `interface.{h,c}` | interface ncurses (thread de exibição) |
+| `interface.{h,c}` | interface gráfica Raylib (thread de exibição) |
 | `simulacao.{h,c}` | estado global + estatísticas + ciclo de vida |
 | `main.c` | criação e junção das threads |
 

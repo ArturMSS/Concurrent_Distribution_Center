@@ -2,7 +2,7 @@
 #define INTERFACE_H
 
 /*
- * interface.h - Interface de acompanhamento em tempo real (ncurses).
+ * interface.h - Interface grafica em tempo real (Raylib).
  *
  * A interface acessa o estado compartilhado de forma sincronizada apenas
  * para LER e desenhar. Tambem captura o teclado (ex.: 'q' encerra).
@@ -12,10 +12,10 @@
  * aguardando coleta / na esteira / entregues, e o tempo de execucao.
  */
 
-/* Inicializa o modo ncurses (chamar na thread principal antes das demais). */
+/* Prepara configuracoes iniciais (InitWindow ocorre dentro de thread_interface). */
 void interface_init(void);
 
-/* Encerra o modo ncurses e restaura o terminal. */
+/* No-op: CloseWindow e chamado dentro de thread_interface. */
 void interface_fim(void);
 
 /* Thread da interface. Recebe um (Simulacao *). */
