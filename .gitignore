@@ -3,6 +3,11 @@ obj/
 idp_sim
 *.o
 
+# Binarios de teste
+tests/teste_fundacao
+tests/teste_bfs
+tests/teste_stress
+
 # Editores
 *.swp
 .vscode/

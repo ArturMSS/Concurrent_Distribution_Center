@@ -26,9 +26,23 @@ Pressione **`q`** a qualquer momento para encerrar a simulação antes de atingi
 
 ### Pré-requisitos
 
+Dependências de compilação (o raylib **não** existe como pacote `apt` no
+Ubuntu, então é compilado do fonte no passo seguinte):
+
 ```bash
 sudo apt update
-sudo apt install build-essential libraylib-dev libx11-dev libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev
+sudo apt install build-essential git cmake libx11-dev libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev
+```
+
+Compilar e instalar o raylib (5.5) do código-fonte:
+
+```bash
+git clone --depth 1 --branch 5.5 https://github.com/raysan5/raylib.git
+cd raylib
+cmake -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target install   # instala em /usr/local (pode pedir sudo)
+sudo ldconfig
+cd ..
 ```
 
 ### Compilar
@@ -128,6 +142,12 @@ podman build -t idp_sim .
 ```bash
 xhost +local:                      # permite o container usar o display local
 
+# Caso 0
+podman run --rm -it \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+  idp_sim 0
+
 # Caso 1
 podman run --rm -it \
   -e DISPLAY=$DISPLAY \
@@ -139,6 +159,12 @@ podman run --rm -it \
   -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   idp_sim 2
+
+# Caso 3
+podman run --rm -it \
+  -e DISPLAY=$DISPLAY \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+  idp_sim 3
 ```
 
 > **SELinux (Fedora/RHEL):** adicione `:z` ao volume X11:
