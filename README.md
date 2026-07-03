@@ -148,7 +148,7 @@ podman run --rm -it \
 
 ```bash
 # Abre um shell com o código do host montado em /trabalho
-podman run --rm -it -v "$(pwd)":/trabalho:Z idp_sim bash
+podman run --rm -it -v "$(pwd)":/trabalho:Z --entrypoint bash idp_sim
 
 # Dentro do container:
 make clean
