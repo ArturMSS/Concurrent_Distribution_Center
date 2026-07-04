@@ -2,6 +2,7 @@
 obj/
 idp_sim
 *.o
+raylib
 
 # Binarios de teste
 tests/teste_fundacao
