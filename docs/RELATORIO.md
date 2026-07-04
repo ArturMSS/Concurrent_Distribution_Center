@@ -15,9 +15,9 @@ O programa cria **N + M + 3 threads** ao total, onde N é o número de robôs co
 | Esteira | `thread_esteira` | 1 | `Simulacao *` |
 | Robô coletor | `thread_coletor` | N | `ArgRobo *` (ponteiros para `sim` e `sim.coletores[i]`) |
 | Robô entregador | `thread_entregador` | M | `ArgRobo *` |
-| Interface ncurses | `thread_interface` | 1 | `Simulacao *` |
+| Interface Raylib | `thread_interface` | 1 | `Simulacao *` |
 
-Todas as threads são criadas em `main.c` com `pthread_create` e aguardadas com `pthread_join`. A interface ncurses é inicializada **antes** da criação das threads para garantir que o terminal já está em modo raw quando as threads começam a ler o teclado (função `getch` não bloqueante com `nodelay`).
+Todas as threads são criadas em `main.c` com `pthread_create` e aguardadas com `pthread_join`. A janela Raylib é criada **dentro** de `thread_interface` (via `InitWindow`), pois a biblioteca exige que o contexto OpenGL seja criado e usado pela mesma thread — por isso `interface_init` em `main.c` apenas configura o nível de log, sem abrir janela.
 
 O encerramento é coordenado pela flag `sim.rodando` (detalhada na seção 4): quando ela vai a zero, todos os laços de thread terminam naturalmente e os `pthread_join` em `main.c` retornam.
 
@@ -83,6 +83,10 @@ Nos pontos de espera (coletor aguardando espaço na esteira; entregador aguardan
 
 ## 5. Decisões de projeto
 
+### Interface gráfica com Raylib (substituição de ncurses — bônus +10%)
+
+O enunciado prevê ncurses como interface padrão e oferece bônus de até 10 pontos para grupos que substituam integralmente a interface por uma implementação em Raylib. Este projeto opta pela interface Raylib: o mapa e o painel lateral são desenhados em uma janela gráfica com cores e barra de progresso, proporcionando visualização mais clara da simulação. A lógica concorrente é idêntica à que seria usada com ncurses — a thread de interface captura um snapshot do estado (copiando `Mapa.celulas` sob `Mapa.mutex` e lendo contadores sob `Estatisticas.mutex`) e renderiza em seguida.
+
 ### Por que um mutex por recurso?
 
 Um mutex global simplificaria a implementação, mas criaria um gargalo severo: a thread de interface (que lê o mapa a cada 100 ms) bloquearia todos os robôs durante a renderização. Com mutexes por recurso, cada robô bloqueia apenas a célula que está tentando ocupar, e a interface adquire `Mapa.mutex` por menos de um microsegundo (cópia de buffer) antes de liberar.
@@ -115,8 +119,15 @@ Quando `stats_inc_entregues` detecta que `pacotes_entregues >= total_pacotes`, c
 
 ### Pré-requisitos (Ubuntu 24.04)
 
+A interface usa Raylib, que precisa ser compilada do fonte (não há pacote `apt` no Ubuntu). O `Dockerfile` automatiza tudo; para compilar manualmente:
+
 ```bash
-sudo apt update && sudo apt install build-essential libncurses-dev
+sudo apt update && sudo apt install -y build-essential git cmake \
+    libx11-dev libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev
+
+git clone --depth 1 --branch 5.5 https://github.com/raysan5/raylib.git /tmp/raylib
+cd /tmp/raylib && cmake -B build -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target install && sudo ldconfig
 ```
 
 ### Compilar
@@ -141,12 +152,18 @@ Pressione **`q`** para encerrar antecipadamente.
 ```bash
 make teste          # valida mapa, simulacao e operacoes atomicas
 make teste-bfs      # prova que o BFS desvia de obstaculo em U
-make teste-stress   # ciclo completo com threads reais (sem ncurses)
+make teste-stress   # ciclo completo com threads reais (sem interface gráfica)
 ```
 
 ### Via container (qualquer sistema com podman)
 
+A interface gráfica precisa de acesso ao servidor X11 do host:
+
 ```bash
 podman build -t idp_sim .
-podman run --rm -it idp_sim 2
+xhost +local:                              # libera acesso ao X11 local
+podman run --rm -it \
+    -e DISPLAY=$DISPLAY \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    idp_sim 2
 ```
