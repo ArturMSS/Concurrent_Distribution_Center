@@ -3,11 +3,6 @@
 
 /*
  * config.h - Parametros configuraveis da simulacao.
- *
- * O enunciado permite configuracao ESTATICA (cenarios pre-definidos) ou
- * DINAMICA (parametros lidos do usuario). Este esqueleto usa cenarios
- * estaticos selecionados por argumento de linha de comando; a leitura
- * dinamica fica como exercicio (ver config_carregar_dinamico).
  */
 
 typedef struct {
@@ -38,8 +33,6 @@ typedef struct {
 /* Carrega um dos cenarios estaticos (n de 1 a NUM_CENARIOS). */
 Config config_carregar_cenario(int n);
 
-/* TODO (configuracao dinamica): preencher uma Config a partir de entrada
- * do usuario (stdin, argumentos ou arquivo). Retornar 0 em caso de sucesso. */
 int config_carregar_dinamico(Config *cfg);
 
 #endif /* CONFIG_H */

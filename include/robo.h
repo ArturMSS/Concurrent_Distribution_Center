@@ -46,11 +46,7 @@ typedef struct {
  * celulas (movimento atomico via mapa_tenta_mover). Retorna 1 quando o robo
  * ja esta ADJACENTE (ou sobre) o alvo, indicando que chegou; 0 caso ainda
  * precise andar.
- *
- * Implementacao atual: passo "guloso" (greedy) que tenta reduzir a distancia
- * em x ou y. NAO desvia bem de paredes em formato de U.
- * TODO: substituir por uma busca de caminho (ex.: BFS) para lidar com
- * obstaculos e com bloqueios temporarios causados por outros robos. */
+*/
 int robo_passo_ate(struct Simulacao *sim, Robo *r, Vec2 alvo);
 
 #endif /* ROBO_H */
