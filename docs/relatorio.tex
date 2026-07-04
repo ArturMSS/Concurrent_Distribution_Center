@@ -22,10 +22,12 @@
 \usepackage{xcolor}
 
 \lstset{
-  basicstyle=\ttfamily\footnotesize,
+  basicstyle=\ttfamily\scriptsize,
   breaklines=true,
   frame=single,
   backgroundcolor=\color{gray!10},
+  aboveskip=4pt,
+  belowskip=4pt,
 }
 
 \sloppy
@@ -39,8 +41,7 @@
 \address{Instituto Brasileiro de Ensino, Desenvolvimento e Pesquisa (IDP)\\
   Ciência da Computação e Engenharia de Software\\
   Disciplina: Programação Concorrente --- 2026/1
-  \email{\{artur.moraes, helenna.massarra, pedro.raposo\}@idp.edu.br}
-}
+\email{rutra200@gmail.com, h.massarrapaes@gmail.com, pedrocalil.cordeiro@gmail.com}}
 
 % ── Documento ────────────────────────────────────────────────
 \begin{document}
@@ -48,14 +49,12 @@
 \maketitle
 
 \begin{resumo}
-Este trabalho implementa a simulação de um centro de distribuição automatizado
-composto por robôs coletores, robôs entregadores e uma esteira transportadora.
-A implementação em C usa \textit{pthreads} para modelar cada entidade como uma
-\textit{thread} independente e \textit{mutexes} por recurso para coordenar o
-acesso a células do mapa, esteira e filas das estações.  A interface gráfica
-usa Raylib em substituição ao ncurses, habilitando o bônus do enunciado.  Três
-cenários estáticos e uma configuração dinâmica validam o sistema sob
-diferentes cargas.
+Este trabalho apresenta a simulação concorrente de um centro de distribuição
+automatizado em C, com robôs coletores, entregadores e esteira transportadora.
+A solução utiliza \textit{pthreads}, \textit{mutexes} por recurso e interface
+gráfica em Raylib. O sistema foi validado em três cenários estáticos e em uma
+configuração dinâmica, demonstrando entrega correta dos pacotes e ausência de
+\textit{deadlocks}.
 \end{resumo}
 
 % ─────────────────────────────────────────────────────────────
@@ -203,8 +202,8 @@ manter recursos travados durante o desenho.
 
 \begin{figure}[ht]
 \centering
-\includegraphics[height=3.2cm]{interface-alta.png}\hspace{4mm}%
-\includegraphics[height=3.2cm]{interface-dinamico.png}
+\includegraphics[height=2.6cm]{interface-alta.png}\hspace{4mm}%
+\includegraphics[height=2.6cm]{interface-dinamico.png}
 \caption{Interface Raylib nos cenários Alta Concorrência (esq.) e
   Personalizado/dinâmico (dir.).}
 \label{fig:interface}
@@ -237,11 +236,21 @@ distante da entrada, liberando o gargalo.
 \section{Guia de Utilização}
 \label{sec:uso}
 
-A interface exige Raylib 5.5; o \texttt{README} do repositório traz a
-instalação a partir do fonte no Ubuntu 24.04.  Alternativamente, o
-\texttt{Dockerfile} incluso constrói imagem pronta (\texttt{podman build -t
-idp\_sim .}), executável montando \texttt{/tmp/.X11-unix} e exportando
-\texttt{DISPLAY}.  Com a biblioteca disponível:
+A interface exige Raylib 5.5. No Ubuntu 24.04, a biblioteca pode ser
+instalada a partir do fonte:
+
+\begin{lstlisting}[language=bash]
+sudo apt install build-essential git libasound2-dev libx11-dev \
+  libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev \
+  libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+git clone --depth 1 --branch 5.5 https://github.com/raysan5/raylib.git
+cd raylib/src && make PLATFORM=PLATFORM_DESKTOP && sudo make install
+\end{lstlisting}
+
+Alternativamente, o \texttt{Dockerfile} incluso constrói imagem pronta
+(\texttt{podman build -t idp\_sim .}), executável montando
+\texttt{/tmp/.X11-unix} e exportando \texttt{DISPLAY}.  Com a biblioteca
+disponível:
 
 \begin{lstlisting}[language=bash]
 make                # compila ./idp_sim
@@ -297,22 +306,15 @@ consecutivas para exercitar intercalações distintas de \textit{threads}.
 \section{Conclusão}
 \label{sec:conclusao}
 
-Este trabalho apresentou a implementação de um centro de distribuição
-automatizado como um sistema concorrente em C, com cada entidade executando
-como uma \textit{thread} POSIX independente.  A estratégia de um \textit{mutex} por
-recurso, combinada a seções críticas curtas e à ausência de aquisição aninhada
-de \textit{locks}, garantiu exclusão mútua sem \textit{deadlocks} e com
-paralelismo real entre \textit{threads} que operam sobre recursos distintos.
+Este trabalho implementou um centro de distribuição automatizado como sistema
+concorrente em C, com entidades modeladas por \textit{threads} POSIX. A adoção
+de um \textit{mutex} por recurso, seções críticas curtas e ausência de
+\textit{locks} aninhados garantiu exclusão mútua sem \textit{deadlocks}.
 
-Os experimentos com os três cenários estáticos e a configuração dinâmica
-confirmaram o comportamento esperado: todos os pacotes foram entregues, o
-encerramento cooperativo funcionou e o sistema manteve-se estável mesmo sob
-alta concorrência.  Como trabalhos futuros, destacam-se a substituição da
-flag de término por \texttt{stdatomic.h} (portabilidade estrita), o uso de
-variáveis de condição caso a granularidade temporal da simulação seja
-reduzida, e políticas de roteamento cooperativas para reduzir a contenção
-nos gargalos do mapa.
-
+Os testes confirmaram a entrega correta dos pacotes, o encerramento cooperativo
+e a estabilidade do sistema mesmo sob alta concorrência. Como melhorias futuras,
+destacam-se o uso de \texttt{stdatomic.h}, variáveis de condição e políticas de
+roteamento cooperativas para reduzir contenção.
 % ─────────────────────────────────────────────────────────────
 \begin{thebibliography}{9}
 
