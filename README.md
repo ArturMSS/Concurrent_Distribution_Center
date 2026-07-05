@@ -118,9 +118,8 @@ make clean
 
 ## Rodar via container (compilação e testes)
 
-> A interface Raylib abre uma janela gráfica, por isso o container precisa de
-> acesso ao servidor X11 do host para **executar**. Para apenas **compilar e
-> testar**, nenhum display é necessário.
+> Para **compilar e testar** não é preciso display. Para **executar** a janela
+> gráfica, o container precisa do X11 do host.
 
 ### Pré-requisito: podman rootless (uma vez só)
 
@@ -137,38 +136,45 @@ podman pull ubuntu:24.04
 podman build -t idp_sim .
 ```
 
-### 2. Executar com janela gráfica (Linux com X11)
+### 2. Executar com janela gráfica (Linux/X11)
 
 ```bash
-xhost +local:                      # permite o container usar o display local
+xhost +local:            # libera o display local (uma vez por sessão)
 
 # Caso 0
 podman run --rm -it \
+  --security-opt label=disable \
   -e DISPLAY=$DISPLAY \
+  -e LIBGL_ALWAYS_SOFTWARE=1 \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   idp_sim 0
 
 # Caso 1
 podman run --rm -it \
+  --security-opt label=disable \
   -e DISPLAY=$DISPLAY \
+  -e LIBGL_ALWAYS_SOFTWARE=1 \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   idp_sim 1
 
 # Caso 2
 podman run --rm -it \
+  --security-opt label=disable \
   -e DISPLAY=$DISPLAY \
+  -e LIBGL_ALWAYS_SOFTWARE=1 \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   idp_sim 2
 
 # Caso 3
 podman run --rm -it \
+  --security-opt label=disable \
   -e DISPLAY=$DISPLAY \
+  -e LIBGL_ALWAYS_SOFTWARE=1 \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
   idp_sim 3
 ```
 
-> **SELinux (Fedora/RHEL):** adicione `:z` ao volume X11:
-> `-v /tmp/.X11-unix:/tmp/.X11-unix:ro,z`
+> `-it` mantém o terminal para o caso 0 pedir os parâmetros. `--security-opt label=disable` (Fedora/SELinux) e `LIBGL_ALWAYS_SOFTWARE=1` (render por software, evita erros de GL) são inofensivos em outras distros.
 
 ### 3. Rodar apenas os testes (sem display)
 
