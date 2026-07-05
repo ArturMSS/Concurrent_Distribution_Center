@@ -152,9 +152,9 @@ desenfileirar adquirem \texttt{Estacao.mutex}, garantindo que lista encadeada
 e contador sejam modificados atomicamente.
 
 \textbf{Estatísticas (\texttt{simulacao.c}).}
-\texttt{stats\_inc\_entregues} verifica a condição de término \emph{sob o
-mesmo lock}: atingida a meta, chama \texttt{simulacao\_parar} ainda na seção
-crítica, evitando parada duplicada por corrida.
+\texttt{stats\_inc\_entregues} incrementa e testa a meta \emph{sob o mesmo
+lock}; atingida, libera o \textit{lock} e chama \texttt{simulacao\_parar}. O
+teste atômico evita parada duplicada por corrida.
 
 % ─────────────────────────────────────────────────────────────
 \section{Mecanismos de Sincronização}
