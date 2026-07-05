@@ -88,19 +88,19 @@ int config_carregar_dinamico(Config *cfg)
 
     snprintf(cfg->nome, sizeof(cfg->nome), "Personalizado");
 
-    cfg->largura          = ler_int("Largura do mapa (colunas)", 18,  8, 64);
-    cfg->altura           = ler_int("Altura do mapa (linhas)",   12,  6, 40);
-    cfg->num_coletores    = ler_int("Robos coletores",            2,  1, 10);
-    cfg->num_entregadores = ler_int("Robos entregadores",         1,  1, 10);
-    cfg->num_estacoes     = ler_int("Estacoes de coleta (P)",     3,  1, 10);
-    cfg->num_despachos    = ler_int("Pontos de despacho (D)",     2,  1, 10);
-    cfg->num_obstaculos   = ler_int("Obstaculos (#)",             4,  0, 40);
-    cfg->tamanho_esteira  = ler_int("Tamanho da esteira",         6,  2, 30);
-    cfg->total_pacotes    = ler_int("Total de pacotes (meta)",   20,  1, 500);
+    cfg->largura          = ler_int("Largura do mapa (colunas)(min 8, max 64)", 18,  8, 64);
+    cfg->altura           = ler_int("Altura do mapa (linhas)(min 6, max 40)",   12,  6, 40);
+    cfg->num_coletores    = ler_int("Robos coletores(min 1, max 10)",            2,  1, 10);
+    cfg->num_entregadores = ler_int("Robos entregadores(min 1, max 10)",         1,  1, 10);
+    cfg->num_estacoes     = ler_int("Estacoes de coleta (P)(min 1, max 10)",     3,  1, 10);
+    cfg->num_despachos    = ler_int("Pontos de despacho (D)(min 1, max 10)",     2,  1, 10);
+    cfg->num_obstaculos   = ler_int("Obstaculos (#)(min 0, max 40)",             4,  0, 40);
+    cfg->tamanho_esteira  = ler_int("Tamanho da esteira(min 2, max 30)",         6,  2, 30);
+    cfg->total_pacotes    = ler_int("Total de pacotes (meta)(min 1, max 500)",   20,  1, 500);
     cfg->intervalo_geracao_ms =
-                            ler_int("Intervalo de geracao (ms)", 1200, 50, 10000);
-    cfg->passo_ms         = ler_int("Duracao de um tick (ms)",   300, 50,  2000);
-    cfg->seed             = (unsigned int)ler_int("Semente aleatoria", 42, 0, 99999);
+                            ler_int("Intervalo de geracao (ms)(min 50, max 10000)", 1200, 50, 10000);
+    cfg->passo_ms         = ler_int("Duracao de um tick (ms)(min 50, max 2000)",   300, 50,  2000);
+    cfg->seed             = (unsigned int)ler_int("Semente aleatoria(min 0, max 99999)", 42, 0, 99999);
 
     /* Sanidade minima: ao menos uma celula livre por robo e por estrutura */
     int total_celulas = cfg->largura * cfg->altura;

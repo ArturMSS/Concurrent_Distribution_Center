@@ -22,7 +22,7 @@
  * ou -1 se nao houver caminho disponivel agora.
  */
 
-#define MAPA_MAX_CELULAS 1024   /* >= 32*20 = 640 (maior cenario) */
+#define MAPA_MAX_CELULAS 2560   /*64*40 = 2560, maior cenario*/
 
 static const int DX[4] = { 1, -1,  0,  0 };
 static const int DY[4] = { 0,  0,  1, -1 };
